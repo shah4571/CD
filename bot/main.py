@@ -14,7 +14,7 @@ nest_asyncio.apply()
 # -----------------------------
 # ✅ Force VPS system time sync (ntpdate enough)
 os.system("sudo ntpdate -u pool.ntp.org")
-time.sleep(2)  # ২ সেকেন্ড অপেক্ষা
+time.sleep(3)  # ৩ সেকেন্ড অপেক্ষা
 
 # Optional: পুরনো session ব্যাকআপ/মুছে ফেলা
 SESSION_FILE = "RajuNewBot.session"
@@ -22,9 +22,21 @@ if os.path.exists(SESSION_FILE):
     os.rename(SESSION_FILE, SESSION_FILE + ".bak")
 
 # -----------------------------
+# ✅ Pyrogram time override helper
+import pyrogram
+import datetime
+
+class TimeFixedClient(Client):
+    async def send(self, *args, **kwargs):
+        # Pyrogram session start করার আগে local clock adjust
+        now = datetime.datetime.utcnow()
+        self._start_time = int(now.timestamp())  # override start time
+        return await super().send(*args, **kwargs)
+
+# -----------------------------
 async def main():
-    # ✅ Create Pyrogram Client (only valid arguments)
-    app = Client(
+    # ✅ Create Pyrogram Client
+    app = TimeFixedClient(
         "RajuNewBot",
         api_id=API_ID,
         api_hash=API_HASH,
@@ -36,7 +48,7 @@ async def main():
         lang_code="en"
     )
 
-    # Register all bot handlers
+    # Register handlers
     init_handlers(app)
 
     print("[INFO] Bot is starting...")
