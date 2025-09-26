@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import time
 import nest_asyncio
 from pyrogram import Client
 from bot.config import BOT_TOKEN, API_ID, API_HASH
@@ -9,6 +10,10 @@ from bot.handlers import init_handlers
 
 # ✅ Fix asyncio loop reuse issues
 nest_asyncio.apply()
+
+# ✅ Force VPS / system time sync (solves BadMsgNotification [16])
+os.system("sudo ntpdate -u pool.ntp.org")
+time.sleep(1)  # ১ সেকেন্ড অপেক্ষা করুন
 
 # Optional: পুরনো session ব্যাকআপ/মুছে ফেলা
 SESSION_FILE = "RajuNewBot.session"
