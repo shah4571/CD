@@ -1,36 +1,31 @@
 # bot/main.py
-
 import asyncio
 import os
-import time
-import nest_asyncio
 import datetime
 from pyrogram import Client
 from bot.config import BOT_TOKEN, API_ID, API_HASH
 from bot.handlers import init_handlers
 
-# Fix asyncio loop reuse issues
-nest_asyncio.apply()
-
 # -----------------------------
-# ✅ Optional: পুরনো session ব্যাকআপ
+# ✅ Fresh session helper
 SESSION_FILE = "RajuNewBot.session"
 if os.path.exists(SESSION_FILE):
+    # পুরনো session backup
     os.rename(SESSION_FILE, SESSION_FILE + ".bak")
 
 # -----------------------------
-# ✅ Time override helper for Pyrogram
-class TimeFixedClient(Client):
+# Optional: Time override (microsecond safe)
+class TimeSafeClient(Client):
     async def start(self):
-        # start করার আগে local clock fix
+        # Pyrogram start time fix for VPS
         now = datetime.datetime.utcnow()
         self._start_time = int(now.timestamp())
         return await super().start()
 
 # -----------------------------
 async def main():
-    # ✅ Create Pyrogram client
-    app = TimeFixedClient(
+    # Create client
+    app = TimeSafeClient(
         "RajuNewBot",
         api_id=API_ID,
         api_hash=API_HASH,
@@ -42,7 +37,7 @@ async def main():
         lang_code="en"
     )
 
-    # Register all handlers
+    # Register handlers
     init_handlers(app)
 
     print("[INFO] Bot is starting...")
@@ -54,7 +49,6 @@ async def main():
 # -----------------------------
 if __name__ == "__main__":
     try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
+        asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         print("[INFO] Bot stopped manually")
